@@ -2,6 +2,7 @@ module Her
   module Model
     module Associations
       class Association
+
         # @private
         attr_accessor :params
 
@@ -26,11 +27,7 @@ module Her
           return {} unless data[data_key]
 
           klass = klass.her_nearby_class(association[:class_name])
-          if data[data_key].kind_of?(klass)
-            { association[:name] => data[data_key] }
-          else
-            { association[:name] => klass.new(klass.parse(data[data_key])) }
-          end
+          { association[:name] => klass.instantiate_record(klass, data: data[data_key]) }
         end
 
         # @private
@@ -49,23 +46,26 @@ module Her
 
           return @cached_result unless @params.any? || @cached_result.nil?
           return @parent.attributes[@name] unless @params.any? || @parent.attributes[@name].blank?
-          
-          # No point trying to fetch associates for an object with no id yet.
-          if @parent.persisted?
-            path = build_association_path lambda { "#{@parent.request_path(@params)}#{@opts[:path]}" }
-            @klass.get(path, @params).tap do |result|
-              @cached_result = result unless @params.any?
-            end
+          return @opts[:default].try(:dup) if @parent.new?
+
+          path = build_association_path -> { "#{@parent.request_path(@params)}#{@opts[:path]}" }
+          @klass.get(path, @params).tap do |result|
+            @cached_result = result unless @params.any?
           end
         end
 
         # @private
         def build_association_path(code)
-          begin
-            instance_exec(&code)
-          rescue Her::Errors::PathError
-            return nil
-          end
+          instance_exec(&code)
+        rescue Her::Errors::PathError
+          nil
+        end
+
+        # @private
+        def reset
+          @params = {}
+          @cached_result = nil
+          @parent.attributes.delete(@name)
         end
 
         # Add query parameters to the HTTP request performed to fetch the data
@@ -80,7 +80,7 @@ module Her
         #   user.comments.where(:approved => 1) # Fetched via GET "/users/1/comments?approved=1
         def where(params = {})
           return self if params.blank? && @parent.attributes[@name].blank?
-          AssociationProxy.new self.clone.tap { |a| a.params = a.params.merge(params) }
+          AssociationProxy.new clone.tap { |a| a.params = a.params.merge(params) }
         end
         alias all where
 
@@ -94,13 +94,34 @@ module Her
         #
         #   user = User.find(1)
         #   user.comments.find(3) # Fetched via GET "/users/1/comments/3
-        #
         def find(id)
           return nil if id.blank?
-          path = build_association_path lambda { "#{@parent.request_path(@params)}#{@opts[:path]}/#{id}" }
+          path = build_association_path -> { "#{@parent.request_path(@params)}#{@opts[:path]}/#{id}" }
           @klass.get_resource(path, @params)
         end
 
+        # Refetches the association and puts the proxy back in its initial state,
+        # which is unloaded. Cached associations are cleared.
+        #
+        # @example
+        #   class User
+        #     include Her::Model
+        #     has_many :comments
+        #   end
+        #
+        #   class Comment
+        #     include Her::Model
+        #   end
+        #
+        #   user = User.find(1)
+        #   user.comments = [#<Comment(comments/2) id=2 body="Hello!">]
+        #   user.comments.first.id = "Oops"
+        #   user.comments.reload # => [#<Comment(comments/2) id=2 body="Hello!">]
+        #   # Fetched again via GET "/users/1/comments"
+        def reload
+          reset
+          fetch
+        end
       end
     end
   end

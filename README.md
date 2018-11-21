@@ -1,3 +1,4 @@
+
 <p align="center">
   <a href="https://github.com/remiprev/her">
     <img src="http://i.imgur.com/43KEchq.png" alt="Her" />
@@ -9,6 +10,7 @@
   <a href="https://codeclimate.com/github/remiprev/her"><img src="http://img.shields.io/codeclimate/github/remiprev/her.svg" /></a>
   <a href='https://gemnasium.com/remiprev/her'><img src="http://img.shields.io/gemnasium/remiprev/her.svg" /></a>
   <a href="https://travis-ci.org/remiprev/her"><img src="http://img.shields.io/travis/remiprev/her/master.svg" /></a>
+  <a href="https://gitter.im/her-orm/Lobby"><img src="https://badges.gitter.im/her-orm/Lobby.png" alt="Gitter chat" title="" data-pin-nopin="true"></a>
 </p>
 
 ---
@@ -167,6 +169,24 @@ end
 
 Now, each HTTP request made by Her will have the `X-API-Token` header.
 
+### Basic Http Authentication
+Her can use basic http auth by adding a line to your initializer
+
+```ruby
+# config/initializers/her.rb
+Her::API.setup url: "https://api.example.com" do |c|
+  # Request
+  c.use Faraday::Request::BasicAuthentication, 'myusername', 'mypassword'
+  c.use Faraday::Request::UrlEncoded
+
+  # Response
+  c.use Her::Middleware::DefaultParseJSON
+
+  # Adapter
+  c.use Faraday::Adapter::NetHttp
+end
+```
+
 ### OAuth
 
 Using the `faraday_middleware` and `simple_oauth` gems, it’s fairly easy to use OAuth authentication with Her.
@@ -208,7 +228,7 @@ end
 @tweets = Tweet.get("/statuses/home_timeline.json")
 ```
 
-See the *Authentication* middleware section for an example of how to pass different credentials based on the current user.
+See the [*Authentication middleware section*](#authentication) for an example of how to pass different credentials based on the current user.
 
 ### Parsing JSON data
 
@@ -222,7 +242,7 @@ By default, Her handles JSON data. It expects the resource/collection data to be
 [{ "id" : 1, "name" : "Tobias Fünke" }]
 ```
 
-However, if you want Her to be able to parse the data from a single root element (usually based on the model name), you’ll have to use the `parse_root_in_json` method (See the **JSON attributes-wrapping** section).
+However, if you want Her to be able to parse the data from a single root element (usually based on the model name), you’ll have to use the `parse_root_in_json` method (See the [**JSON attributes-wrapping**](#json-attributes-wrapping) section).
 
 Also, you can define your own parsing method using a response middleware. The middleware should set `env[:body]` to a hash with three symbol keys: `:data`, `:errors` and `:metadata`. The following code uses a custom middleware to parse the JSON data:
 
@@ -391,8 +411,8 @@ You can use the association methods to build new objects and save them.
 @user.comments.build(body: "Just a draft")
 # => [#<Comment body="Just a draft" user_id=1>]
 
-@user.comments.create(body: "Hello world.")
-# POST "/users/1/comments" with `body=Hello+world.`
+@user.comments.create(body: "Hello world.", user_id: 1)
+# POST "/comments" with `body=Hello+world.&user_id=1`
 # => [#<Comment id=3 body="Hello world." user_id=1>]
 ```
 
@@ -426,10 +446,26 @@ class Organization
 end
 ```
 
-Her expects all `User` resources to have an `:organization_id` (or `:_organization_id`) attribute. Otherwise, calling mostly all methods, like `User.all`, will thrown an exception like this one:
+Her expects all `User` resources to have an `:organization_id` (or `:_organization_id`) attribute. Otherwise, calling mostly all methods, like `User.all`, will throw an exception like this one:
 
 ```ruby
 Her::Errors::PathError: Missing :_organization_id parameter to build the request path. Path is `organizations/:organization_id/users`. Parameters are `{ … }`.
+```
+
+#### Associations with custom attributes
+
+Associations can also be made using custom attributes:
+
+```ruby
+class User
+  include Her::Model
+  belongs_to :owns, class_name: "Organization"
+end
+
+class Organization
+  include Her::Model
+  has_many :owners, class_name: "User"
+end
 ```
 
 ### Validations
@@ -587,7 +623,7 @@ users = Users.all
 #### JSON API support
 
 To consume a JSON API 1.0 compliant service, it must return data in accordance with the [JSON API spec](http://jsonapi.org/). The general format
-of the data is as follows: 
+of the data is as follows:
 
 ```json
 { "data": {
@@ -970,6 +1006,7 @@ See the [UPGRADE.md](https://github.com/remiprev/her/blob/master/UPGRADE.md) for
 Most projects I know that use Her are internal or private projects but here’s a list of public ones:
 
 * [tumbz](https://github.com/remiprev/tumbz)
+* [zoho-ruby](https://github.com/errorstudio/zoho-ruby)
 * [crowdher](https://github.com/simonprev/crowdher)
 * [vodka](https://github.com/magnolia-fan/vodka)
 * [webistrano_cli](https://github.com/chytreg/webistrano_cli)
@@ -980,6 +1017,9 @@ Most projects I know that use Her are internal or private projects but here’s 
 I told myself a few months ago that it would be great to build a gem to replace Rails’ [ActiveResource](http://api.rubyonrails.org/classes/ActiveResource/Base.html) since it was barely maintained (and now removed from Rails 4.0), lacking features and hard to extend/customize. I had built a few of these REST-powered ORMs for client projects before but I decided I wanted to write one for myself that I could release as an open-source project.
 
 Most of Her’s core concepts were written on a Saturday morning of April 2012 ([first commit](https://github.com/remiprev/her/commit/689d8e88916dc2ad258e69a2a91a283f061cbef2) at 7am!).
+
+## Maintainers
+The gem is currently maintained by [@zacharywelch](https://github.com/zacharywelch) and [@edtjones](https://github.com/edtjones).
 
 ## Contribute
 

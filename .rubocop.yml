@@ -1,0 +1,31 @@
+inherit_from: .rubocop_todo.yml
+
+Layout/CaseIndentation:
+  EnforcedStyle: end
+
+Layout/EmptyLinesAroundClassBody:
+  EnforcedStyle: beginning_only
+
+Lint/AmbiguousBlockAssociation:
+  Enabled: false
+
+Lint/AmbiguousOperator:
+  Enabled: false
+
+Lint/AssignmentInCondition:
+  Enabled: false
+
+Naming/UncommunicativeMethodParamName:
+  AllowedNames: io, id, to, by
+
+Style/AsciiComments:
+  Enabled: false
+
+Style/GuardClause:
+  Enabled: false
+
+Style/RescueModifier:
+  Enabled: false
+
+Style/SymbolArray:
+  Enabled: false

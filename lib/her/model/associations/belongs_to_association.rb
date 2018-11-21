@@ -80,13 +80,9 @@ module Her
           return @parent.attributes[@name] unless @params.any? || @parent.attributes[@name].blank?
 
           path_params = @parent.attributes.merge(@params.merge(@klass.primary_key => foreign_key_value))
-          path = build_association_path lambda { @klass.build_request_path(path_params) }
-          begin
-            @klass.get_resource(path, @params).tap do |result|
-              @cached_result = result if @params.blank?
-            end
-          rescue Her::Errors::NotFound => e
-            @opts[:default].try(:dup)
+          path = build_association_path -> { @klass.build_request_path(@opts[:path], path_params) }
+          @klass.get_resource(path, @params).tap do |result|
+            @cached_result = result if @params.blank?
           end
         end
 
@@ -94,7 +90,6 @@ module Her
         def assign_nested_attributes(attributes)
           assign_single_nested_attributes(attributes)
         end
-
       end
     end
   end

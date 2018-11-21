@@ -1,4 +1,5 @@
 # encoding: utf-8
+
 require File.join(File.dirname(__FILE__), "../spec_helper.rb")
 
 describe "Her::Model and ActiveModel::Validations" do
@@ -13,12 +14,12 @@ describe "Her::Model and ActiveModel::Validations" do
 
     it "validates attributes when calling #valid?" do
       user = Foo::User.new
-      user.should_not be_valid
-      user.errors.full_messages.should include("Fullname can't be blank")
-      user.errors.full_messages.should include("Email can't be blank")
+      expect(user).not_to be_valid
+      expect(user.errors.full_messages).to include("Fullname can't be blank")
+      expect(user.errors.full_messages).to include("Email can't be blank")
       user.fullname = "Tobias Fünke"
       user.email = "tobias@bluthcompany.com"
-      user.should be_valid
+      expect(user).to be_valid
     end
   end
 
@@ -35,8 +36,8 @@ describe "Her::Model and ActiveModel::Validations" do
     end
 
     it "validates attributes when calling #valid?" do
-      user = User.new(:_errors => ["Email cannot be blank"])
-      user.errors.should include("Email cannot be blank")
+      user = User.new(_errors: ["Email cannot be blank"])
+      expect(user.errors).to include("Email cannot be blank")
     end
   end
 end
