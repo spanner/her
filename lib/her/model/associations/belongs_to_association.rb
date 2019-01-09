@@ -11,8 +11,19 @@ module Her
             :data_key => name,
             :default => nil,
             :foreign_key => "#{name}_id",
-            :path => "/#{name.to_s.pluralize}/:id"
           }.merge(opts)
+
+          # ADDED to check remote class for path definition before defaulting
+          # TODO we still don't seem to fetch the associate though
+          unless opts[:path]
+            associated_klass = opts[:class_name].constantize
+            if associated_klass.respond_to?(:get_resource_path)
+              opts[:path] = associated_klass.send(:get_resource_path)
+            else
+              opts[:path] = "/#{name.to_s.pluralize}/:id"
+            end
+          end
+
           klass.associations[:belongs_to] << opts
 
           klass.class_eval <<-RUBY, __FILE__, __LINE__ + 1

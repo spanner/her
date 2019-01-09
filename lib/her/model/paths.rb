@@ -15,8 +15,15 @@ module Her
       # @param [Hash] params An optional set of additional parameters for
       #   path construction. These will not override attributes of the resource.
       def request_path(params = {})
-        self.class.build_request_path(params.merge(attributes.dup))
+
+        Rails.logger.warn "REQUEST PATH #{params.inspect}, #{attributes.inspect}"
+
+        path = self.class.build_request_path(params.merge(attributes.dup))
+        Rails.logger.warn "=> #{path.inspect}"
+
+        path
       end
+
 
       module ClassMethods
         # Define the primary key field that will be used to find and save records
@@ -84,6 +91,10 @@ module Her
           end
         end
 
+        def get_resource_path
+          @_her_resource_path
+        end
+
         # Return a custom path based on the collection path and variable parameters
         #
         # @private
@@ -92,6 +103,7 @@ module Her
 
           unless path.is_a?(String)
             parameters = path.try(:with_indifferent_access) || parameters
+            #TODO check interpoltion of custom primary key when keying association
             path =
               if parameters.include?(primary_key) && parameters[primary_key] && !parameters[primary_key].is_a?(Array)
                 resource_path.dup

@@ -94,7 +94,6 @@ module Her
             :_method => @parent.method_for(:find),
             :_path => @parent.build_request_path(params.merge(@parent.primary_key => id))
           )
-
           @parent.request(request_params) do |parsed_data, response|
             if response.success?
               resource = @parent.new_from_parsed_data(parsed_data)
