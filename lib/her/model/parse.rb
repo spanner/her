@@ -66,6 +66,18 @@ module Her
 
         # @private
         # TODO: Handle has_one
+        def embeded_params(attributes)
+          associations.values.flatten.each_with_object({}) do |definition, hash|
+            value = case association = attributes[definition[:name]]
+                    when Her::Collection, Array
+                      association.map { |a| a.to_params }.reject(&:empty?)
+                    when Her::Model
+                      association.to_params
+                    end
+            hash[definition[:data_key]] = value if value.present?
+          end
+        end
+
         # def embeded_params(attributes)
         #   associations[:has_many].select { |a| attributes.include?(a[:data_key])}.compact.inject({}) do |hash, association|
         #     params = attributes[association[:data_key]].map(&:to_params)
