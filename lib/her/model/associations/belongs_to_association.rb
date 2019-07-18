@@ -91,9 +91,7 @@ module Her
           return @parent.attributes[@name] unless @params.any? || @parent.attributes[@name].blank?
 
           path_params = @parent.attributes.merge(@params.merge(@klass.primary_key => foreign_key_value))
-          path = build_association_path -> { @klass.build_request_path(@opts[:path], path_params) }
-
-          byebug
+          path = build_association_path -> { byebug; @klass.build_request_path(@opts[:path], path_params) }
 
           @klass.get_resource(path, @params).tap do |result|
             @cached_result = result if @params.blank?
