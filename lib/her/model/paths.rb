@@ -15,13 +15,7 @@ module Her
       # @param [Hash] params An optional set of additional parameters for
       #   path construction. These will not override attributes of the resource.
       def request_path(params = {})
-
-        Rails.logger.warn "REQUEST PATH #{params.inspect}, #{attributes.inspect}"
-
-        path = self.class.build_request_path(params.merge(attributes.dup))
-        Rails.logger.warn "=> #{path.inspect}"
-
-        path
+        self.class.build_request_path(params.merge(attributes.dup))
       end
 
 
