@@ -97,20 +97,19 @@ module Her
 
           unless path.is_a?(String)
             parameters = path.try(:with_indifferent_access) || parameters
-            #TODO check interpoltion of custom primary key when keying association
             path =
               if parameters.include?(primary_key) && parameters[primary_key] && !parameters[primary_key].is_a?(Array)
                 resource_path.dup
               else
                 collection_path.dup
               end
-
-            # Replace :id with our actual primary key
-            path.gsub!(/(\A|\/):id(\Z|\/)/, "\\1:#{primary_key}\\2")
           end
 
+          # Replace :id with our actual primary key
+          path.gsub!(/(\A|\/):id(\Z|\/)/, "\\1:#{primary_key}\\2")
+
+          # Interpolate :key or :_key
           path.gsub(/:([\w_]+)/) do
-            # Look for :key or :_key, otherwise raise an exception
             key = $1.to_sym
             value = parameters.delete(key) || parameters.delete(:"_#{key}")
             if value
