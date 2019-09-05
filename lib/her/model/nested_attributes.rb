@@ -5,8 +5,9 @@ module Her
 
       def saved_nested_attributes
         nested_attributes = self.class.saved_nested_associations.each_with_object({}) do |association_name, hash|
-          if associate = self.send(association_name)
-            Rails.logger.warn "⚠️ saving nested #{association_name}: #{associate}"
+          associate = self.send(association_name)
+          if associate.present?
+            Rails.logger.warn "⚠️ saving nested #{association_name}: #{associate.inspect}"
             if associate.kind_of?(Array)
               associates = {}
               associate.each_with_index {|a, i|
