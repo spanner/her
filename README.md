@@ -91,6 +91,10 @@ user.fullname = "Lindsay Fünke" # OR user.assign_attributes(fullname: "Lindsay 
 user.save # returns false if it fails, errors in user.response_errors array
 # PUT "/users/1" with `fullname=Lindsay+Fünke`
 
+user.update_attributes(fullname: "Maeby Fünke")
+# PUT "/users/1" with `fullname=Maeby+Fünke`
+
+# => PUT /users/1 { "id": 1, "name": "new new name" }
 # Update a resource without fetching it
 User.save_existing(1, fullname: "Lindsay Fünke")
 # PUT "/users/1" with `fullname=Lindsay+Fünke`
@@ -671,7 +675,7 @@ class User
   include Her::Model
 
   custom_get :popular, :unpopular
-  custom_post :from_default
+  custom_post :from_default, :activate
 end
 
 User.popular
@@ -685,6 +689,10 @@ User.unpopular
 User.from_default(name: "Maeby Fünke")
 # POST "/users/from_default" with `name=Maeby+Fünke`
 # => #<User id=5 name="Maeby Fünke">
+
+User.activate(id: 6)
+# POST "/users/6/activate"
+# => #<User id=6>
 ```
 
 You can also use `get`, `post`, `put` or `delete` (which maps the returned data to either a collection or a resource).

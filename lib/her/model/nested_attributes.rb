@@ -5,28 +5,31 @@ module Her
 
       def saved_nested_attributes
         nested_attributes = self.class.saved_nested_associations.each_with_object({}) do |association_name, hash|
-          if association = self.send(association_name)
-            if association.kind_of?(Array)
+          if associate = self.send(association_name)
+            Rails.logger.warn "⚠️ saving nested #{association_name}: #{associate}"
+            if associate.kind_of?(Array)
               associates = {}
-              association.each_with_index {|a, i|
+              associate.each_with_index {|a, i|
                 associates[i] = to_params_for_nesting(a)
               }
               hash["#{association_name}_attributes".to_sym] = associates
             else
-              hash["#{association_name}_attributes".to_sym] = to_params_for_nesting(association)
+              hash["#{association_name}_attributes".to_sym] = to_params_for_nesting(associate)
             end
           end
         end
       end
-      
+
       def to_params_for_nesting(associate)
-        associate_params = associate.to_params
-        associate_params = associate_params[associate.class.included_root_element] if associate.class.include_root_in_json?
-        associate_params['_destroy'] = associate.destroying?
-        associate_params['id'] = associate.id
-        associate_params
+        if associate
+          associate_params = associate.to_params
+          associate_params = associate_params[associate.class.included_root_element] if associate.class.include_root_in_json?
+          associate_params['_destroy'] = associate.destroying?
+          associate_params['id'] = associate.id
+          associate_params
+        end
       end
-      
+
 
       module ClassMethods
         # Allow nested attributes for an association

@@ -6,9 +6,10 @@ rvm:
   - 1.9.3
   - 2.0.0
   - 2.1.6
-  - 2.2.8
-  - 2.3.5
-  - 2.4.2
+  - 2.2.10
+  - 2.3.7
+  - 2.4.3
+  - 2.5.1
 
 gemfile:
   - gemfiles/Gemfile.activemodel-4.2
@@ -38,6 +39,7 @@ matrix:
       rvm: 2.1.6
 
 before_install:
-  - gem install bundler
+  - gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
+  - gem install bundler -v '< 2'
 
 script: "echo 'COME ON!' && bundle exec rake spec"

@@ -10,11 +10,10 @@ module Her
             :name => name,
             :data_key => name,
             :default => nil,
-            :foreign_key => "#{name}_id",
+            :foreign_key => "#{name}_id"
           }.merge(opts)
 
           # ADDED to check remote class for path definition before defaulting
-          # TODO we still don't seem to fetch the associate though
           unless opts[:path]
             associated_klass = opts[:class_name].constantize
             if associated_klass.respond_to?(:get_resource_path)
@@ -92,7 +91,6 @@ module Her
 
           path_params = @parent.attributes.merge(@params.merge(@klass.primary_key => foreign_key_value))
           path = build_association_path -> { @klass.build_request_path(@opts[:path], path_params) }
-
           @klass.get_resource(path, @params).tap do |result|
             @cached_result = result if @params.blank?
           end
